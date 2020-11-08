@@ -20,7 +20,7 @@ import numpy
 
 __author__ = """Tiago Coutinho"""
 __email__ = "coutinhotiago@gmail.com"
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 
 
 async def send_message_tcp(adu, reader, writer):
