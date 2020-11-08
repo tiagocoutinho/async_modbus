@@ -158,7 +158,8 @@ asyncio.run(main())
 ### curio examples
 
 **curio TCP streams**
-```
+
+```python
 import curio
 from async_modbus import AsyncTCPClient
 
