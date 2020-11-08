@@ -53,6 +53,10 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/tiagocoutinho/async_modbus",
+    project_urls={
+        "Documentation": "https://tiagocoutinho.github.io/async_modbus/",
+        "Source": "https://github.com/tiagocoutinho/async_modbus/",
+    },
     version="0.1.0",
     zip_safe=False,
 )
