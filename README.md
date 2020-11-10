@@ -69,14 +69,15 @@ from async_modbus import modbus_for_url
 
 
 async def main():
+
     client = modbus_for_url("tcp://localhost:15020")
 
-    values = [1, 0, 1, 1]
+    values = numpy.array([1, 0, 1, 1])  # would also work with list<bool or int>
     reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
 
     reply = await client.read_coils(slave_id=1, starting_address=1, quantity=len(values))
-    assert reply == values
+    assert (reply == values).all()
 
 
 asyncio.run(main())
@@ -91,14 +92,15 @@ from async_modbus import modbus_for_url
 
 
 async def main():
+
     client = modbus_for_url("rfc2217://moxa.acme.org:6610")
 
     values = [1, 0, 1, 1]
     reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
 
-    reply = await client.read_coils(slave_id=1, starting_address=1, quantity=len(values))
-    assert reply == values
+    reply = await client.read_discrete_inputs(slave_id=1, starting_address=1, quantity=len(values))
+    assert (reply == values).all()
 
 
 asyncio.run(main())
@@ -109,18 +111,22 @@ asyncio.run(main())
 ```python
 import asyncio
 
+import numpy
+
 from async_modbus import AsyncTCPClient
 
 
 async def main():
+
     reader, writer = await asyncio.open_connection('localhost', 15020)
     client = AsyncTCPClient((reader, writer))
-    values = [1, 0, 1, 1]
-    reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
+
+    values = numpy.array([0, 2**15 - 1, 10, 3, 32766])
+    reply = await client.write_registers(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
 
-    reply = await client.read_coils(slave_id=1, starting_address=1, quantity=len(values))
-    assert reply == values
+    reply = await client.read_holding_registers(slave_id=1, starting_address=1, quantity=len(values))
+    assert (reply == values).all()
 
     writer.close()
     await writer.wait_closed()
@@ -134,19 +140,23 @@ asyncio.run(main())
 ```python
 import asyncio
 
+import numpy
+
 from async_modbus import AsyncRTUClient
 from serial_asyncio import open_serial_connection
 
 
 async def main():
+
     reader, writer = await open_serial_connection(url="socket://moxa.acme.org:6610")
     client = AsyncRTUClient((reader, writer))
-    values = [1, 0, 1, 1]
-    reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
+
+    values = [0, 2**15 - 1, 10, 3, 32766]
+    reply = await client.write_registers(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
 
-    reply = await client.read_coils(slave_id=1, starting_address=1, quantity=len(values))
-    assert reply == values
+    reply = await client.read_input_registers(slave_id=1, starting_address=1, quantity=len(values))
+    assert (reply == values).all()
 
     writer.close()
     await writer.wait_closed()
@@ -165,15 +175,17 @@ from async_modbus import AsyncTCPClient
 
 
 async def main():
+
     sock = await curio.open_connection("0", 15020)
-    stream = sock.as_stream()
-    client = AsyncTCPClient(stream)
+    client = AsyncTCPClient(sock.as_stream())
+
     values = [1, 0, 1, 1]
     reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
 
     reply = await client.read_coils(slave_id=1, starting_address=1, quantity=len(values))
-    assert reply == values
+    assert (reply == values).all()
+
     await sock.close()
 ```
 
