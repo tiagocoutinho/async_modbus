@@ -72,7 +72,7 @@ async def main():
     client = modbus_for_url("tcp://localhost:15020")
 
     values = [1, 0, 1, 1]
-    reply = await client.write_multiple_coils(slave_id=1, starting_address=1, values=values)
+    reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
 
     reply = await client.read_coils(slave_id=1, starting_address=1, quantity=len(values))
@@ -94,7 +94,7 @@ async def main():
     client = modbus_for_url("rfc2217://moxa.acme.org:6610")
 
     values = [1, 0, 1, 1]
-    reply = await client.write_multiple_coils(slave_id=1, starting_address=1, values=values)
+    reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
 
     reply = await client.read_coils(slave_id=1, starting_address=1, quantity=len(values))
@@ -116,7 +116,7 @@ async def main():
     reader, writer = await asyncio.open_connection('localhost', 15020)
     client = AsyncTCPClient((reader, writer))
     values = [1, 0, 1, 1]
-    reply = await client.write_multiple_coils(slave_id=1, starting_address=1, values=values)
+    reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
 
     reply = await client.read_coils(slave_id=1, starting_address=1, quantity=len(values))
@@ -142,7 +142,7 @@ async def main():
     reader, writer = await open_serial_connection(url="socket://moxa.acme.org:6610")
     client = AsyncRTUClient((reader, writer))
     values = [1, 0, 1, 1]
-    reply = await client.write_multiple_coils(slave_id=1, starting_address=1, values=values)
+    reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
 
     reply = await client.read_coils(slave_id=1, starting_address=1, quantity=len(values))
@@ -169,7 +169,7 @@ async def main():
     stream = sock.as_stream()
     client = AsyncTCPClient(stream)
     values = [1, 0, 1, 1]
-    reply = await client.write_multiple_coils(slave_id=1, starting_address=1, values=values)
+    reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
 
     reply = await client.read_coils(slave_id=1, starting_address=1, quantity=len(values))

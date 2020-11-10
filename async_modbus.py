@@ -210,7 +210,7 @@ class AsyncClient:
         )
         return await self._send_message(request)
 
-    async def write_single_coil(self, slave_id, address, value):
+    async def write_coil(self, slave_id, address, value):
         """Write a single coil to modbus (function code 05)
 
         :param slave_id: Slave number.
@@ -220,8 +220,8 @@ class AsyncClient:
         request = self.protocol.write_single_coil(slave_id, address, value)
         return await self._send_message(request)
 
-    async def write_single_register(self, slave_id, address, value):
-        """Write a single registers to modbus (function code 06)
+    async def write_register(self, slave_id, address, value):
+        """Write a single register to modbus (function code 06)
 
         :param slave_id: Slave number.
         :param address: The register address
@@ -230,7 +230,7 @@ class AsyncClient:
         request = self.protocol.protocol.write_single_register(slave_id, address, value)
         return await self._send_message(request)
 
-    async def write_multiple_coils(self, slave_id, starting_address, values):
+    async def write_coils(self, slave_id, starting_address, values):
         """Write multiple registers to modbus (function code 06)
 
         :param slave_id: Slave number.
@@ -240,7 +240,7 @@ class AsyncClient:
         request = self.protocol.write_multiple_coils(slave_id, starting_address, values)
         return await self._send_message(request)
 
-    async def write_multiple_registers(self, slave_id, starting_address, values):
+    async def write_registers(self, slave_id, starting_address, values):
         """Write multiple registers to modbus (function code 06)
 
         :param slave_id: Slave number.

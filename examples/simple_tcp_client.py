@@ -7,7 +7,7 @@ async def main():
     client = modbus_for_url("tcp://localhost:15020")
 
     values = [1, 0, 1, 1]
-    reply = await client.write_multiple_coils(slave_id=1, starting_address=1, values=values)
+    reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
     print(reply)
 

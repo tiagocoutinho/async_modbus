@@ -7,7 +7,7 @@ async def main():
     stream = sock.as_stream()
     client = AsyncTCPClient(stream)
     values = [1, 0, 1, 1]
-    reply = await client.write_multiple_coils(slave_id=1, starting_address=1, values=values)
+    reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
     assert reply is len(values)
     print(reply)
 

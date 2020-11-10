@@ -5,7 +5,7 @@
 import pytest
 
 
-from async_modbus import core
+import async_modbus
 
 
 @pytest.fixture
