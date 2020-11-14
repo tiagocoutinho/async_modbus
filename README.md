@@ -5,8 +5,9 @@
 [![AIO Modbus updates](https://pyup.io/repos/github/tiagocoutinho/async_modbus/shield.svg)](https://pyup.io/repos/github/tiagocoutinho/async_modbus/)
 
 Asynchronous (as in python async/await) modbus python 3 client library.
-It provides an OO client API. It is a thin layer on on top of the venerable
-[umodbus](https://github.com/AdvancedClimateSystems/uModbus) library.
+A thin layer on on top of the venerable
+[umodbus](https://github.com/AdvancedClimateSystems/uModbus) library providing
+an object oriented client API.
 
 async_modbus is async library agnostic. You should be able to use it with
 [asyncio](https://docs.python.org/3/library/asyncio.html),
