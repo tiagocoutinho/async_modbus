@@ -1,8 +1,7 @@
 # Async ModBus
 
 [![Async Modbus](https://img.shields.io/pypi/v/async_modbus.svg)](https://pypi.python.org/pypi/async_modbus)
-
-[![AIO Modbus updates](https://pyup.io/repos/github/tiagocoutinho/async_modbus/shield.svg)](https://pyup.io/repos/github/tiagocoutinho/async_modbus/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/async_modbus.svg)](https://pypi.python.org/pypi/async_modbus)
 
 Asynchronous (as in python async/await) modbus python 3 client library.
 A thin layer on on top of the venerable
