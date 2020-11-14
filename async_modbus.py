@@ -80,8 +80,8 @@ rtu._async_send_message = send_message_rtu
 
 
 def unpack_bits(resp_pdu, req_pdu):
-    count = struct.unpack('>H', req_pdu[-2:])[0]
-    byte_count = struct.unpack('>B', resp_pdu[1:2])[0]
+    count = struct.unpack(">H", req_pdu[-2:])[0]
+    byte_count = struct.unpack(">B", resp_pdu[1:2])[0]
     packed = numpy.frombuffer(resp_pdu, dtype="u1", offset=2, count=byte_count)
     return numpy.unpackbits(packed, count=count, bitorder="little")
 
@@ -92,7 +92,7 @@ def pack_bits(function_code, starting_address, values):
     packed = numpy.packbits(values, bitorder="little")
     count = values.size
     header = struct.pack(
-        '>BHHB', function_code, starting_address, count, (count + 7) // 8
+        ">BHHB", function_code, starting_address, count, (count + 7) // 8
     )
     return header + packed.tobytes()
 
@@ -108,13 +108,12 @@ def pack_16bits(function_code, starting_address, values):
     dtype = ">{}2".format("i" if conf.SIGNED_VALUES else "u")
     values = numpy.array(values, dtype=dtype, copy=False)
     header = struct.pack(
-        '>BHHB', function_code, starting_address, values.size, values.nbytes
+        ">BHHB", function_code, starting_address, values.size, values.nbytes
     )
     return header + values.tobytes()
 
 
 class ReadCoils(functions.ReadCoils):
-
     @classmethod
     def create_from_response_pdu(cls, resp_pdu, req_pdu):
         """ Create instance from response PDU.
@@ -132,7 +131,6 @@ class ReadCoils(functions.ReadCoils):
 
 
 class ReadDiscreteInputs(functions.ReadDiscreteInputs):
-
     @classmethod
     def create_from_response_pdu(cls, resp_pdu, req_pdu):
         """ Create instance from response PDU.
@@ -150,7 +148,6 @@ class ReadDiscreteInputs(functions.ReadDiscreteInputs):
 
 
 class ReadHoldingRegisters(functions.ReadHoldingRegisters):
-
     @classmethod
     def create_from_response_pdu(cls, resp_pdu, req_pdu):
         """ Create instance from response PDU.
@@ -168,7 +165,6 @@ class ReadHoldingRegisters(functions.ReadHoldingRegisters):
 
 
 class ReadInputRegisters(functions.ReadInputRegisters):
-
     @classmethod
     def create_from_response_pdu(cls, resp_pdu, req_pdu):
         """ Create instance from response PDU.
@@ -207,7 +203,6 @@ function_code_to_function_map = {
     functions.READ_DISCRETE_INPUTS: ReadDiscreteInputs,
     functions.READ_HOLDING_REGISTERS: ReadHoldingRegisters,
     functions.READ_INPUT_REGISTERS: ReadInputRegisters,
-
 }
 
 
@@ -222,23 +217,27 @@ class _Transport:
     asyncio. This makes using curio's `socket.from_stream()` or sockio's TCP()
     straight forward.
     """
+
     def __init__(self, transport):
         if isinstance(transport, (tuple, list)):
             self.reader, self.writer = transport
         else:
             self.reader = self.writer = transport
-        if hasattr(self.reader, 'read_exactly'):
+        if hasattr(self.reader, "read_exactly"):
             self.readexactly = self.reader.read_exactly
         else:
             self.readexactly = self.reader.readexactly
         if inspect.iscoroutinefunction(self.writer.write):
             self._data = None
+
             def write(data):
                 self._data = data
+
             async def drain():
                 assert self._data is not None
                 await self.writer.write(self._data)
                 self._data = None
+
         else:
             write = self.writer.write
             drain = self.writer.drain
