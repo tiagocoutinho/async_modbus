@@ -209,7 +209,7 @@ function_code_to_function_map = {
 functions.function_code_to_function_map.update(function_code_to_function_map)
 
 
-class _Transport:
+class _Stream:
     """
     Internal usage only.
 
@@ -218,11 +218,11 @@ class _Transport:
     straight forward.
     """
 
-    def __init__(self, transport):
-        if isinstance(transport, (tuple, list)):
-            self.reader, self.writer = transport
+    def __init__(self, stream):
+        if isinstance(stream, (tuple, list)):
+            self.reader, self.writer = stream
         else:
-            self.reader = self.writer = transport
+            self.reader = self.writer = stream
         if hasattr(self.reader, "read_exactly"):
             self.readexactly = self.reader.read_exactly
         else:
@@ -249,7 +249,7 @@ class _Transport:
 class AsyncClient:
     """Asynchronous modbus client.
 
-    :param transport:
+    :param stream:
         a tuple of objects implementing <StreamReader, StreamWriter> protocol
         or an object implementing both
     :param protocol:
@@ -258,14 +258,14 @@ class AsyncClient:
 
     protocol = None
 
-    def __init__(self, transport, protocol=None):
-        self.transport = _Transport(transport)
+    def __init__(self, Stream, protocol=None):
+        self.stream = _stream(stream)
         if protocol is not None:
             self.protocol = protocol
 
     async def _send_message(self, request):
         return await self.protocol._async_send_message(
-            request, self.transport, self.transport
+            request, self.stream, self.stream
         )
 
     async def read_coils(self, slave_id, starting_address, quantity):
@@ -393,10 +393,10 @@ def modbus_for_url(url, conn_options=None):
     scheme = url_result.scheme
     if scheme == "tcp" and url_result.port is None:
         url += ":502"
-    transport = connio.connection_for_url(url, **conn_options)
+    stream = connio.connection_for_url(url, **conn_options)
     if scheme in connio.SOCKET_SCHEMES:
-        return AsyncTCPClient(transport)
+        return AsyncTCPClient(stream)
     elif scheme in connio.SERIAL_SCHEMES:
-        return AsyncRTUClient(transport)
+        return AsyncRTUClient(stream)
     else:
         raise ValueError("unsupported scheme {!r} for {}".format(scheme, url))
