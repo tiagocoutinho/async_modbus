@@ -258,7 +258,7 @@ class AsyncClient:
 
     protocol = None
 
-    def __init__(self, Stream, protocol=None):
+    def __init__(self, stream, protocol=None):
         self.stream = _stream(stream)
         if protocol is not None:
             self.protocol = protocol
