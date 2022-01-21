@@ -65,6 +65,8 @@ Here are some examples:
 ```python
 import asyncio
 
+import numpy
+
 from async_modbus import modbus_for_url
 
 
