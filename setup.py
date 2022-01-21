@@ -48,7 +48,7 @@ setup(
     include_package_data=True,
     keywords="async_modbus, asyncio, modbus",
     name="async_modbus",
-    packages=find_packages(),
+    py_modules=['async_modbus'],
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,
