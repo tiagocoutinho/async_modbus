@@ -99,7 +99,6 @@ def pack_bits(function_code, starting_address, values):
 
 def unpack_16bits(resp_pdu, req_pdu):
     count = struct.unpack(">H", req_pdu[-2:])[0]
-    byte_count = struct.unpack(">B", resp_pdu[1:2])[0]
     dtype = ">{}2".format("i" if conf.SIGNED_VALUES else "u")
     return numpy.frombuffer(resp_pdu, dtype=dtype, count=count, offset=2)
 
@@ -228,16 +227,15 @@ class _Stream:
         else:
             self.readexactly = self.reader.readexactly
         if inspect.iscoroutinefunction(self.writer.write):
-            self._data = None
+            self._write_coro = None
 
             def write(data):
-                self._data = data
+                self._write_coro = self.writer.write(data)
 
             async def drain():
-                assert self._data is not None
-                await self.writer.write(self._data)
-                self._data = None
-
+                assert self._write_coro is not None
+                await self._write_coro
+                self._write_coro = None
         else:
             write = self.writer.write
             drain = self.writer.drain
@@ -259,7 +257,7 @@ class AsyncClient:
     protocol = None
 
     def __init__(self, stream, protocol=None):
-        self.stream = _stream(stream)
+        self.stream = _Stream(stream)
         if protocol is not None:
             self.protocol = protocol
 
