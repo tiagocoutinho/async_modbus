@@ -57,6 +57,6 @@ setup(
         "Documentation": "https://tiagocoutinho.github.io/async_modbus/",
         "Source": "https://github.com/tiagocoutinho/async_modbus/",
     },
-    version="0.1.3",
+    version="0.1.4",
     zip_safe=False,
 )
