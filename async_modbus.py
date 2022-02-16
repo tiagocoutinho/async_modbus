@@ -224,8 +224,10 @@ class _Stream:
             self.reader = self.writer = stream
         if hasattr(self.reader, "read_exactly"):
             self.readexactly = self.reader.read_exactly
-        else:
+        elif hasattr(self.reader, "readexactly"):
             self.readexactly = self.reader.readexactly
+        else:
+            self.readexactly = self.reader.read
         if inspect.iscoroutinefunction(self.writer.write):
             self._write_coro = None
 
