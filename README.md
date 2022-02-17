@@ -51,6 +51,10 @@ From within your favorite python environment type:
 
 `$ pip install async_modbus`
 
+Numpy will be used if installed. You can install it yourself, or include the optional dependency:
+
+`$ pip install async_modbus[numpy]`
+
 ## Library
 
 The core of the async_modbus library consists of a `modbus_for_url()` function

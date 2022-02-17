@@ -8,7 +8,7 @@
 
 """The setup script."""
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 with open("README.md") as readme_file:
     readme = readme_file.read()
@@ -16,13 +16,16 @@ with open("README.md") as readme_file:
 with open("HISTORY.md") as history_file:
     history = history_file.read()
 
-requirements = [
-    "umodbus", "connio", "numpy"
-]
+requirements = ["umodbus", "connio"]
 
 setup_requirements = ["pytest-runner"]
 
 test_requirements = ["pytest>=3"]
+
+extras_require = {
+    "numpy": ["numpy"],
+}
+
 
 setup(
     author="Tiago Coutinho",
@@ -41,6 +44,7 @@ setup(
         "Programming Language :: Python :: 3.9",
     ],
     description="Async ModBus python library",
+    extras_require=extras_require,
     install_requires=requirements,
     license="GNU General Public License v3",
     long_description=readme + "\n\n" + history,
@@ -48,7 +52,7 @@ setup(
     include_package_data=True,
     keywords="async_modbus, asyncio, modbus",
     name="async_modbus",
-    py_modules=['async_modbus'],
+    py_modules=["async_modbus"],
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,
