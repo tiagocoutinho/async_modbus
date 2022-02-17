@@ -85,7 +85,30 @@ async def main():
 asyncio.run(main())
 ```
 
-*RTU over remove serial line using RFC2217*
+*RTU on local serial line with custom serial options*
+
+```python
+import asyncio
+
+from async_modbus import modbus_for_url
+
+
+async def main():
+
+    client = modbus_for_url("serial:///dev/ttyS0", {"baudrate":19200, "parity":"E"})
+
+    values = [1, 0, 1, 1]
+    reply = await client.write_coils(slave_id=1, starting_address=1, values=values)
+    assert reply is len(values)
+
+    reply = await client.read_discrete_inputs(slave_id=1, starting_address=1, quantity=len(values))
+    assert (reply == values).all()
+
+
+asyncio.run(main())
+```
+
+*RTU over remote serial line using RFC2217*
 
 ```python
 import asyncio
