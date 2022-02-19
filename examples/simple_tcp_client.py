@@ -11,7 +11,9 @@ async def main():
     assert reply is len(values)
     print(reply)
 
-    reply = await client.read_coils(slave_id=1, starting_address=1, quantity=len(values))
+    reply = await client.read_coils(
+        slave_id=1, starting_address=1, quantity=len(values)
+    )
     assert reply == values
     print(reply)
 

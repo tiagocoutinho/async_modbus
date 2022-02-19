@@ -1,9 +1,6 @@
 #!/usr/bin/env python
-
 """Tests for `async_modbus` package."""
-
 import pytest
-
 
 import async_modbus
 
@@ -18,7 +15,8 @@ def response():
     # return requests.get('https://github.com/alba-synchrotron/cookiecutter-albalib')
 
 
-def test_content(response):
+def test_modbus_for_url(response):
     """Sample pytest test function with the pytest fixture as an argument."""
     # from bs4 import BeautifulSoup
     # assert 'GitHub' in BeautifulSoup(response.content).title.string
+    async_modbus.modbus_for_url

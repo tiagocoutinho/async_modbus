@@ -4,9 +4,7 @@
 #
 # Copyright (c) 2020-2022 Tiago Coutinho
 # Distributed under the GNU General Public License v3. See LICENSE for info.
-
 """Async ModBus python library"""
-
 import inspect
 import urllib.parse
 
@@ -14,10 +12,19 @@ from umodbus.client import tcp
 from umodbus.client.serial import rtu
 
 from .umodbus_numpy import patch
+
 patch()
 
-__all__ = ["send_message_tcp", "send_message_rtu", "rtu", "tcp", "AsyncClient",
-           "AsyncRTUClient", "AsyncTCPClient", "modbus_for_url"]
+__all__ = [
+    "send_message_tcp",
+    "send_message_rtu",
+    "rtu",
+    "tcp",
+    "AsyncClient",
+    "AsyncRTUClient",
+    "AsyncTCPClient",
+    "modbus_for_url",
+]
 
 
 async def send_message_tcp(adu, reader, writer):
