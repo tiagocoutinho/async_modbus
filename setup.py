@@ -8,59 +8,7 @@
 
 """The setup script."""
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
-with open("README.md") as readme_file:
-    readme = readme_file.read()
-
-with open("HISTORY.md") as history_file:
-    history = history_file.read()
-
-requirements = ["umodbus", "connio"]
-
-setup_requirements = ["pytest-runner"]
-
-test_requirements = ["pytest>=3"]
-
-extras_require = {
-    "numpy": ["numpy"],
-}
-
-
-setup(
-    author="Tiago Coutinho",
-    author_email="coutinhotiago@gmail.com",
-    python_requires=">=3.6",
-    classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-        "Natural Language :: English",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-    ],
-    description="Async ModBus python library",
-    extras_require=extras_require,
-    install_requires=requirements,
-    license="GNU General Public License v3",
-    long_description=readme + "\n\n" + history,
-    long_description_content_type="text/markdown",
-    include_package_data=True,
-    keywords="async_modbus, asyncio, modbus",
-    name="async_modbus",
-    packages=find_packages(),
-    setup_requires=setup_requirements,
-    test_suite="tests",
-    tests_require=test_requirements,
-    url="https://github.com/tiagocoutinho/async_modbus",
-    project_urls={
-        "Documentation": "https://tiagocoutinho.github.io/async_modbus/",
-        "Source": "https://github.com/tiagocoutinho/async_modbus/",
-    },
-    version="0.1.4",
-    zip_safe=False,
-)
+if __name__ == "__main__":
+    setup()
