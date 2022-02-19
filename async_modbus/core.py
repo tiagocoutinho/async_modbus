@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# This file is part of the Async ModBus project
+# This file is part of the async-modbus project
 #
 # Copyright (c) 2020-2022 Tiago Coutinho
 # Distributed under the GNU General Public License v3. See LICENSE for info.
