@@ -9,5 +9,5 @@ from .core import *
 
 __author__ = """Tiago Coutinho"""
 __email__ = "coutinhotiago@gmail.com"
-__version__ = "0.1.4"
+__version__ = "0.2.0"
 
