@@ -2,10 +2,10 @@
 #
 # This file is part of the Async ModBus project
 #
-# Copyright (c) 2020 Tiago Coutinho
+# Copyright (c) 2020-2022 Tiago Coutinho
 # Distributed under the GNU General Public License v3. See LICENSE for info.
 
-"""Top-level package for async modbus library"""
+"""Async ModBus python library"""
 
 import inspect
 import urllib.parse
@@ -13,17 +13,11 @@ import urllib.parse
 from umodbus.client import tcp
 from umodbus.client.serial import rtu
 
-try:
-    import numpy  # noqa
-except ImportError:
-    pass
-else:
-    import umodbus_numpy  # noqa
+from .umodbus_numpy import patch
+patch()
 
-
-__author__ = """Tiago Coutinho"""
-__email__ = "coutinhotiago@gmail.com"
-__version__ = "0.1.4"
+__all__ = ["send_message_tcp", "send_message_rtu", "rtu", "tcp", "AsyncClient",
+           "AsyncRTUClient", "AsyncTCPClient", "modbus_for_url"]
 
 
 async def send_message_tcp(adu, reader, writer):
