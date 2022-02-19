@@ -2,6 +2,7 @@
 
 [![Async Modbus](https://img.shields.io/pypi/v/async_modbus.svg)](https://pypi.python.org/pypi/async_modbus)
 [![Python Versions](https://img.shields.io/pypi/pyversions/async_modbus.svg)](https://pypi.python.org/pypi/async_modbus)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
 Asynchronous (as in python async/await) modbus python 3 client library.
 A thin layer on on top of the venerable

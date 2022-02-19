@@ -4,11 +4,9 @@
 #
 # Copyright (c) 2020-2022 Tiago Coutinho
 # Distributed under the GNU General Public License v3. See LICENSE for info.
-
 """Patch umodbus to use numpy."""
-
-import struct
 import logging
+import struct
 
 try:
     import numpy  # noqa
@@ -134,7 +132,7 @@ def request_pdu_registers(self):
 
 def patch():
     if not numpy:
-        log = logging.getLogger('async_modbus')
+        log = logging.getLogger("async_modbus")
         log.debug("could not patch umodbus: numpy not found")
         return
     # Patch umodbus to do our bidding (which is to handle numpy arrays)
