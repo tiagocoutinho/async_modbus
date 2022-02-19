@@ -1,7 +1,20 @@
-"""Patch umodbus to use numpy."""
-import struct
+# -*- coding: utf-8 -*-
+#
+# This file is part of the Async ModBus project
+#
+# Copyright (c) 2020-2022 Tiago Coutinho
+# Distributed under the GNU General Public License v3. See LICENSE for info.
 
-import numpy
+"""Patch umodbus to use numpy."""
+
+import struct
+import logging
+
+try:
+    import numpy  # noqa
+except ModuleNotFoundError:
+    numpy = None
+
 from umodbus import conf, functions
 from umodbus.exceptions import IllegalDataValueError
 
@@ -119,15 +132,20 @@ def request_pdu_registers(self):
     return pack_16bits(self.function_code, self.starting_address, self._values)
 
 
-# Patch umodbus to do our bidding (which is to handle numpy arrays)
-functions.WriteMultipleCoils.request_pdu = property(request_pdu_coils)
-functions.WriteMultipleRegisters.request_pdu = property(request_pdu_registers)
+def patch():
+    if not numpy:
+        log = logging.getLogger('async_modbus')
+        log.debug("could not patch umodbus: numpy not found")
+        return
+    # Patch umodbus to do our bidding (which is to handle numpy arrays)
+    functions.WriteMultipleCoils.request_pdu = property(request_pdu_coils)
+    functions.WriteMultipleRegisters.request_pdu = property(request_pdu_registers)
 
-function_code_to_function_map = {
-    functions.READ_COILS: ReadCoils,
-    functions.READ_DISCRETE_INPUTS: ReadDiscreteInputs,
-    functions.READ_HOLDING_REGISTERS: ReadHoldingRegisters,
-    functions.READ_INPUT_REGISTERS: ReadInputRegisters,
-}
+    function_code_to_function_map = {
+        functions.READ_COILS: ReadCoils,
+        functions.READ_DISCRETE_INPUTS: ReadDiscreteInputs,
+        functions.READ_HOLDING_REGISTERS: ReadHoldingRegisters,
+        functions.READ_INPUT_REGISTERS: ReadInputRegisters,
+    }
 
-functions.function_code_to_function_map.update(function_code_to_function_map)
+    functions.function_code_to_function_map.update(function_code_to_function_map)

@@ -8,7 +8,7 @@
 
 """The setup script."""
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md") as readme_file:
     readme = readme_file.read()
@@ -30,18 +30,18 @@ extras_require = {
 setup(
     author="Tiago Coutinho",
     author_email="coutinhotiago@gmail.com",
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     description="Async ModBus python library",
     extras_require=extras_require,
@@ -52,7 +52,7 @@ setup(
     include_package_data=True,
     keywords="async_modbus, asyncio, modbus",
     name="async_modbus",
-    py_modules=["async_modbus"],
+    packages=find_packages(),
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,
