@@ -147,26 +147,14 @@ write_bit_data = [
 ]
 
 
-read_u16_data = [
+u16_data = [
     (0, 0, [0]),
     (0, 0, [12345]),
-    (0, 0, [2**15 - 1]),
-    (6, 7, [2**15 - 1, 0, 2**14]),
-    (1, 3, [12345, 0, 2**15 - 1, 2**15 - 1]),
-    (5, 10, 10 * [123] + 15 * [2**15 - 1] + 5 * [0]),
-    (0, 0, 115 * [7654] + 10 * [2**15 - 1]),
-    (0, 0, []),
-]
-
-
-write_u16_data = [
-    (0, 0, [0]),
-    (0, 0, [12345]),
-    (0, 0, [2**15 - 1]),
-    (6, 7, [2**15 - 1, 0, 2**14]),
-    (1, 3, [12345, 0, 2**15 - 1, 2**15 - 1]),
-    (5, 10, 10 * [123] + 15 * [2**15 - 1] + 5 * [0]),
-    (0, 0, 115 * [7654] + 10 * [2**15 - 1]),
+    (0, 0, [2**16 - 1]),
+    (6, 7, [2**16 - 1, 0, 2**14]),
+    (1, 3, [12345, 0, 2**16 - 1, 2**16 - 1]),
+    (5, 10, 10 * [123] + 16 * [2**16 - 1] + 5 * [0]),
+    (0, 0, 115 * [7654] + 10 * [2**16 - 1]),
     (0, 0, []),
 ]
 
@@ -296,7 +284,7 @@ async def test_read_discrete_inputs(proto, slave_id, starting_address, expected_
 @pytest.mark.asyncio
 @pytest.mark.parametrize("proto", protocols, ids=["tcp", "rtu"])
 @pytest.mark.parametrize(
-    "slave_id, starting_address, expected_reply", read_u16_data, ids=ids
+    "slave_id, starting_address, expected_reply", u16_data, ids=ids
 )
 async def test_read_holding_registers(
     proto, slave_id, starting_address, expected_reply
@@ -345,7 +333,7 @@ async def test_write_register(proto, slave_id, starting_address, value):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("proto", protocols, ids=["tcp", "rtu"])
-@pytest.mark.parametrize("slave_id, starting_address, values", write_u16_data, ids=ids)
+@pytest.mark.parametrize("slave_id, starting_address, values", u16_data, ids=ids)
 async def test_write_registers(proto, slave_id, starting_address, values):
     Server, Client, protocol = proto
 
@@ -375,7 +363,7 @@ async def test_write_registers(proto, slave_id, starting_address, values):
 @pytest.mark.asyncio
 @pytest.mark.parametrize("proto", protocols, ids=["tcp", "rtu"])
 @pytest.mark.parametrize(
-    "slave_id, starting_address, expected_reply", read_u16_data, ids=ids
+    "slave_id, starting_address, expected_reply", u16_data, ids=ids
 )
 async def test_read_input_registers(proto, slave_id, starting_address, expected_reply):
     Server, Client, protocol = proto
