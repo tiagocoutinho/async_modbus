@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 """Tests for `async_modbus` package."""
+import struct
+
 import pytest
-import umodbus.client.tcp
-import umodbus.exceptions
-import umodbus.functions
-import umodbus.utils
+from umodbus.client import tcp
+from umodbus.client.serial import rtu
+from umodbus.client.serial.redundancy_check import get_crc
+from umodbus.exceptions import IllegalDataValueError
+from umodbus.functions import create_function_from_request_pdu
+from umodbus.utils import pack_mbap
+from umodbus.utils import unpack_mbap
 
-import async_modbus
+from async_modbus import AsyncClient
+from async_modbus import AsyncRTUClient
+from async_modbus import AsyncTCPClient
+from async_modbus import modbus_for_url
 
 
-class Server:
+class BaseServer:
     def __init__(self, slave_id, starting_address, values):
         self.multiple = isinstance(values, (list, tuple))
         self.slave_id = slave_id
@@ -18,13 +26,16 @@ class Server:
         self.request_adu = b""
         self.reply_adu = None
 
-    def get_header_pdu(self):
-        return umodbus.utils.unpack_mbap(self.request_adu[:7]), self.request_adu[7:]
+    @property
+    def request_pdu(self):
+        raise NotImplementedError
+
+    def response_adu(self, pdu):
+        raise NotImplementedError
 
     def process(self):
-        (tid, pid, length, uid), pdu = self.get_header_pdu()
-        func_obj = umodbus.functions.create_function_from_request_pdu(pdu)
-        assert self.slave_id == uid
+        pdu = self.request_pdu
+        func_obj = create_function_from_request_pdu(pdu)
         if self.multiple:
             n = (
                 func_obj.quantity
@@ -39,8 +50,7 @@ class Server:
             response_pdu = func_obj.create_response_pdu(self.response)
         except TypeError:
             response_pdu = func_obj.create_response_pdu()
-        response_header = umodbus.utils.pack_mbap(tid, pid, len(response_pdu) + 1, uid)
-        return response_header + response_pdu
+        return self.response_adu(response_pdu)
 
     async def write(self, data):
         self.request_adu += data
@@ -56,22 +66,51 @@ class Server:
         self.reply_adu = None
 
 
+class TCPServer(BaseServer):
+    @property
+    def request_header(self):
+        return unpack_mbap(self.request_adu[:7])
+
+    @property
+    def request_pdu(self):
+        return self.request_adu[7:]
+
+    def response_adu(self, pdu):
+        (tid, pid, _, uid) = self.request_header
+        assert self.slave_id == uid
+        return pack_mbap(tid, pid, len(pdu) + 1, uid) + pdu
+
+
+class RTUServer(BaseServer):
+    @property
+    def request_header(self):
+        return struct.unpack(">B", self.request_adu[:1])[0]
+
+    @property
+    def request_pdu(self):
+        return self.request_adu[1:-2]
+
+    def response_adu(self, pdu):
+        response = self.request_adu[0:1] + pdu
+        return response + get_crc(response)
+
+
 def test_modbus_for_url():
 
     with pytest.raises(TypeError):
-        async_modbus.modbus_for_url()
+        modbus_for_url()
 
     with pytest.raises(ValueError):
-        async_modbus.modbus_for_url("something silly")
+        modbus_for_url("something silly")
 
     with pytest.raises(ValueError):
-        async_modbus.modbus_for_url("unknown:///dev/ttyS0")
+        modbus_for_url("unknown:///dev/ttyS0")
 
-    modbus = async_modbus.modbus_for_url("tcp://localhost:1000")
-    assert isinstance(modbus, async_modbus.AsyncTCPClient)
+    modbus = modbus_for_url("tcp://localhost:1000")
+    assert isinstance(modbus, AsyncTCPClient)
 
-    modbus = async_modbus.modbus_for_url("serial:///dev/ttyS0")
-    assert isinstance(modbus, async_modbus.AsyncRTUClient)
+    modbus = modbus_for_url("serial:///dev/ttyS0")
+    assert isinstance(modbus, AsyncRTUClient)
 
 
 read_bits_data = [
@@ -132,6 +171,12 @@ write_u16_data = [
 ]
 
 
+protocols = [
+    (TCPServer, AsyncTCPClient, tcp),
+    (RTUServer, AsyncRTUClient, rtu),
+]
+
+
 def ids(v):
     if isinstance(v, (list, tuple)) and len(v) > 5:
         return f"SEQ#{len(v)}"
@@ -139,28 +184,30 @@ def ids(v):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("proto", protocols, ids=["tcp", "rtu"])
 @pytest.mark.parametrize(
     "slave_id, starting_address, expected_reply", read_bits_data, ids=ids
 )
-async def test_read_coils(slave_id, starting_address, expected_reply):
+async def test_read_coils(proto, slave_id, starting_address, expected_reply):
 
+    Server, Client, protocol = proto
     quantity = len(expected_reply)
 
     server = Server(slave_id, starting_address, expected_reply)
-    client = async_modbus.AsyncTCPClient(server)
+    client = Client(server)
     coro = client.read_coils(slave_id, starting_address, quantity)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
         assert (reply == expected_reply).all()
 
     server = Server(slave_id, starting_address, expected_reply)
-    client = async_modbus.AsyncClient(server, umodbus.client.tcp)
+    client = AsyncClient(server, protocol)
     coro = client.read_coils(slave_id, starting_address, quantity)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
@@ -168,41 +215,45 @@ async def test_read_coils(slave_id, starting_address, expected_reply):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("proto", protocols, ids=["tcp", "rtu"])
 @pytest.mark.parametrize("slave_id, starting_address, value", write_bit_data, ids=ids)
-async def test_write_coil(slave_id, starting_address, value):
+async def test_write_coil(proto, slave_id, starting_address, value):
+    Server, Client, protocol = proto
 
     server = Server(slave_id, starting_address, value)
-    client = async_modbus.AsyncTCPClient(server)
+    client = Client(server)
     reply = await client.write_coil(slave_id, starting_address, value)
     assert reply == value
 
     server = Server(slave_id, starting_address, value)
-    client = async_modbus.AsyncClient(server, umodbus.client.tcp)
+    client = AsyncClient(server, protocol)
     reply = await client.write_coil(slave_id, starting_address, value)
     assert reply == value
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("proto", protocols, ids=["tcp", "rtu"])
 @pytest.mark.parametrize("slave_id, starting_address, values", write_bits_data, ids=ids)
-async def test_write_coils(slave_id, starting_address, values):
+async def test_write_coils(proto, slave_id, starting_address, values):
+    Server, Client, protocol = proto
 
     quantity = len(values)
 
     server = Server(slave_id, starting_address, values)
-    client = async_modbus.AsyncTCPClient(server)
+    client = Client(server)
     coro = client.write_coils(slave_id, starting_address, values)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
         assert reply == quantity
 
     server = Server(slave_id, starting_address, values)
-    client = async_modbus.AsyncClient(server, umodbus.client.tcp)
+    client = AsyncClient(server, protocol)
     coro = client.write_coils(slave_id, starting_address, values)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
@@ -210,30 +261,32 @@ async def test_write_coils(slave_id, starting_address, values):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("proto", protocols, ids=["tcp", "rtu"])
 @pytest.mark.parametrize(
     "slave_id, starting_address, expected_reply",
     read_bits_data,
     ids=ids,
 )
-async def test_read_discrete_inputs(slave_id, starting_address, expected_reply):
+async def test_read_discrete_inputs(proto, slave_id, starting_address, expected_reply):
+    Server, Client, protocol = proto
 
     quantity = len(expected_reply)
 
     server = Server(slave_id, starting_address, expected_reply)
-    client = async_modbus.AsyncTCPClient(server)
+    client = Client(server)
     coro = client.read_discrete_inputs(slave_id, starting_address, quantity)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
         assert (reply == expected_reply).all()
 
     server = Server(slave_id, starting_address, expected_reply)
-    client = async_modbus.AsyncClient(server, umodbus.client.tcp)
+    client = AsyncClient(server, protocol)
     coro = client.read_discrete_inputs(slave_id, starting_address, quantity)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
@@ -241,28 +294,32 @@ async def test_read_discrete_inputs(slave_id, starting_address, expected_reply):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("proto", protocols, ids=["tcp", "rtu"])
 @pytest.mark.parametrize(
     "slave_id, starting_address, expected_reply", read_u16_data, ids=ids
 )
-async def test_read_holding_registers(slave_id, starting_address, expected_reply):
+async def test_read_holding_registers(
+    proto, slave_id, starting_address, expected_reply
+):
+    Server, Client, protocol = proto
 
     quantity = len(expected_reply)
 
     server = Server(slave_id, starting_address, expected_reply)
-    client = async_modbus.AsyncTCPClient(server)
+    client = Client(server)
     coro = client.read_holding_registers(slave_id, starting_address, quantity)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
         assert (reply == expected_reply).all()
 
     server = Server(slave_id, starting_address, expected_reply)
-    client = async_modbus.AsyncClient(server, umodbus.client.tcp)
+    client = AsyncClient(server, protocol)
     coro = client.read_holding_registers(slave_id, starting_address, quantity)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
@@ -270,41 +327,45 @@ async def test_read_holding_registers(slave_id, starting_address, expected_reply
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("proto", protocols, ids=["tcp", "rtu"])
 @pytest.mark.parametrize("slave_id, starting_address, value", write_bit_data, ids=ids)
-async def test_write_register(slave_id, starting_address, value):
+async def test_write_register(proto, slave_id, starting_address, value):
+    Server, Client, protocol = proto
 
     server = Server(slave_id, starting_address, value)
-    client = async_modbus.AsyncTCPClient(server)
+    client = Client(server)
     reply = await client.write_register(slave_id, starting_address, value)
     assert reply == value
 
     server = Server(slave_id, starting_address, value)
-    client = async_modbus.AsyncClient(server, umodbus.client.tcp)
+    client = AsyncClient(server, protocol)
     reply = await client.write_register(slave_id, starting_address, value)
     assert reply == value
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("proto", protocols, ids=["tcp", "rtu"])
 @pytest.mark.parametrize("slave_id, starting_address, values", write_u16_data, ids=ids)
-async def test_write_registers(slave_id, starting_address, values):
+async def test_write_registers(proto, slave_id, starting_address, values):
+    Server, Client, protocol = proto
 
     quantity = len(values)
 
     server = Server(slave_id, starting_address, values)
-    client = async_modbus.AsyncTCPClient(server)
+    client = Client(server)
     coro = client.write_registers(slave_id, starting_address, values)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
         assert reply == quantity
 
     server = Server(slave_id, starting_address, values)
-    client = async_modbus.AsyncClient(server, umodbus.client.tcp)
+    client = AsyncClient(server, protocol)
     coro = client.write_registers(slave_id, starting_address, values)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
@@ -312,28 +373,30 @@ async def test_write_registers(slave_id, starting_address, values):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("proto", protocols, ids=["tcp", "rtu"])
 @pytest.mark.parametrize(
     "slave_id, starting_address, expected_reply", read_u16_data, ids=ids
 )
-async def test_read_input_registers(slave_id, starting_address, expected_reply):
+async def test_read_input_registers(proto, slave_id, starting_address, expected_reply):
+    Server, Client, protocol = proto
 
     quantity = len(expected_reply)
 
     server = Server(slave_id, starting_address, expected_reply)
-    client = async_modbus.AsyncTCPClient(server)
+    client = Client(server)
     coro = client.read_input_registers(slave_id, starting_address, quantity)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
         assert (reply == expected_reply).all()
 
     server = Server(slave_id, starting_address, expected_reply)
-    client = async_modbus.AsyncClient(server, umodbus.client.tcp)
+    client = AsyncClient(server, protocol)
     coro = client.read_input_registers(slave_id, starting_address, quantity)
     if not quantity:
-        with pytest.raises(umodbus.exceptions.IllegalDataValueError):
+        with pytest.raises(IllegalDataValueError):
             await coro
     else:
         reply = await coro
