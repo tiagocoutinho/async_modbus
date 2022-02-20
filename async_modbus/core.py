@@ -198,7 +198,7 @@ class AsyncClient:
 
         :param slave_id: Slave number.
         :param address: The coil address
-        :param value: value to write (1, 0, True orFalse)
+        :param value: value to write (1, 0, True or False)
         """
         request = self.protocol.write_single_coil(slave_id, address, value)
         return await self._send_message(request)
