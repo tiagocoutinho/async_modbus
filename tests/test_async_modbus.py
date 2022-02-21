@@ -35,21 +35,17 @@ class BaseServer:
 
     def process(self):
         pdu = self.request_pdu
-        func_obj = create_function_from_request_pdu(pdu)
+        func = create_function_from_request_pdu(pdu)
         if self.multiple:
-            n = (
-                func_obj.quantity
-                if hasattr(func_obj, "quantity")
-                else len(func_obj.values)
-            )
+            n = func.quantity if hasattr(func, "quantity") else len(func.values)
             assert len(self.response) == n
-            assert self.starting_address == func_obj.starting_address
+            assert self.starting_address == func.starting_address
         else:
-            assert self.starting_address == func_obj.address
+            assert self.starting_address == func.address
         try:
-            response_pdu = func_obj.create_response_pdu(self.response)
+            response_pdu = func.create_response_pdu(self.response)
         except TypeError:
-            response_pdu = func_obj.create_response_pdu()
+            response_pdu = func.create_response_pdu()
         return self.response_adu(response_pdu)
 
     async def write(self, data):
