@@ -1,8 +1,9 @@
 # Async ModBus
 
-[![Async Modbus](https://img.shields.io/pypi/v/async_modbus.svg)](https://pypi.python.org/pypi/async_modbus)
-[![Python Versions](https://img.shields.io/pypi/pyversions/async_modbus.svg)](https://pypi.python.org/pypi/async_modbus)
-[![CI Status](https://github.com/tiagocoutinho/async-modbus/CI/badge.svg?branch=master)](https://github.com/tiagocoutinho/async-modbus/actions?workflow=CI)
+[![Async Modbus][pypi-version]](https://pypi.python.org/pypi/async_modbus)
+[![Python Versions][pypi-python-versions]](https://pypi.python.org/pypi/async_modbus)
+[![CI Status][CI]](https://github.com/tiagocoutinho/async-modbus/actions/workflows/ci.yml)
+![License][license]
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
 
@@ -236,3 +237,10 @@ None yet. Why not be the first?
 
 * [umodbus](https://github.com/AdvancedClimateSystems/uModbus)
 * [numpy](https://numpy.org)
+
+
+[pypi-python-versions]: https://img.shields.io/pypi/pyversions/async_modbus.svg
+[pypi-version]: https://img.shields.io/pypi/v/async_modbus.svg
+[pypi-status]: https://img.shields.io/pypi/status/async_modbus.svg
+[license]: https://img.shields.io/pypi/l/async_modbus.svg
+[CI]: https://github.com/tiagocoutinho/async_modbus/actions/workflows/ci.yml/badge.svg
