@@ -210,7 +210,7 @@ class AsyncClient:
         :param address: The register address
         :param value: value to write
         """
-        request = self.protocol.protocol.write_single_register(slave_id, address, value)
+        request = self.protocol.write_single_register(slave_id, address, value)
         return await self._send_message(request)
 
     async def write_coils(self, slave_id, starting_address, values):
