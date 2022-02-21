@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Tests for `async_modbus` package."""
 import struct
+import sys
+from contextlib import contextmanager
 
 import pytest
 from umodbus.client import tcp
@@ -91,22 +93,29 @@ class RTUServer(BaseServer):
         return response + get_crc(response)
 
 
-def test_modbus_for_url():
+@contextmanager
+def otype(otype):
+    yield otype
 
-    with pytest.raises(TypeError):
-        modbus_for_url()
 
-    with pytest.raises(ValueError):
-        modbus_for_url("something silly")
-
-    with pytest.raises(ValueError):
-        modbus_for_url("unknown:///dev/ttyS0")
-
-    modbus = modbus_for_url("tcp://localhost:1000")
-    assert isinstance(modbus, AsyncTCPClient)
-
-    modbus = modbus_for_url("serial:///dev/ttyS0")
-    assert isinstance(modbus, AsyncRTUClient)
+@pytest.mark.parametrize(
+    "url, expect",
+    [
+        ("something silly", pytest.raises(ValueError)),
+        ("unknown:///dev/ttyS0", pytest.raises(ValueError)),
+        ("tcp://localhost:1000", otype(AsyncTCPClient)),
+        pytest.param(
+            "serial:///dev/ttyS0",
+            otype(AsyncRTUClient),
+            marks=pytest.mark.skipif(
+                sys.platform.startswith("win"), reason="no /dev on windows"
+            ),
+        ),
+    ],
+)
+def test_modbus_for_url(url, expect):
+    with expect as otype:
+        isinstance(modbus_for_url(url), otype)
 
 
 read_bits_data = [
