@@ -14,10 +14,10 @@ async def main():
     reply = await client.read_coils(
         slave_id=1, starting_address=1, quantity=len(values)
     )
-    assert reply == values
+    assert (reply == values).all()
     print(reply)
 
-    await client.transport.close()
+    await client.stream.close()
 
 
 asyncio.run(main())
