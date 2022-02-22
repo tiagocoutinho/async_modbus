@@ -2,7 +2,7 @@
 
 [![Async Modbus][pypi-version]](https://pypi.python.org/pypi/async_modbus)
 [![Python Versions][pypi-python-versions]](https://pypi.python.org/pypi/async_modbus)
-[![CI Status][CI]](https://github.com/tiagocoutinho/async-modbus/actions/workflows/ci.yml)
+[![CI Status][CI]](https://github.com/tiagocoutinho/async_modbus/actions/workflows/ci.yml)
 ![License][license]
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
