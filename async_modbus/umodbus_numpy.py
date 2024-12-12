@@ -43,7 +43,7 @@ def unpack_16bits(resp_pdu, req_pdu):
 
 def pack_16bits(function_code, starting_address, values):
     dtype = ">{}2".format("i" if conf.SIGNED_VALUES else "u")
-    values = numpy.array(values, dtype=dtype, copy=False)
+    values = numpy.asarray(values, dtype=dtype)
     header = struct.pack(
         ">BHHB", function_code, starting_address, values.size, values.nbytes
     )
