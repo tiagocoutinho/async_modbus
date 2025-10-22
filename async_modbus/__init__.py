@@ -12,4 +12,4 @@ from .core import modbus_for_url  # noqa
 
 __author__ = """Tiago Coutinho"""
 __email__ = "coutinhotiago@gmail.com"
-__version__ = "0.2.2"
+__version__ = "0.2.3"
